@@ -19,25 +19,36 @@ public class DeviceMessageUtil {
 		return JsonUtil.toObject(s, DeviceMessage.class);
 	}
 	
-	static public void send(WebSocket ws, DeviceMessage message) {
+	static public WebSocket send(final WebSocket ws, final DeviceMessage message) {
 		// Strip off address info when sending to device
-		DeviceMessage.AddrInfo info = message.createOrGetAddrInfo();
-		message.setAddrInfo(null);
-		String s = JsonUtil.toJsonString(message);
-		message.setAddrInfo(info);
-		ws.writeTextFrame(s);
+		DeviceMessage.AddrInfo info = message.getAddrInfo();
+		try {
+			message.setAddrInfo(null);
+			String s = JsonUtil.toJsonString(message);
+			ws.writeTextFrame(s);
+		}
+		finally {
+			message.setAddrInfo(info);
+		}
+		return ws;
 	}
 	
-	static public <T> EventBus send(String address, DeviceMessage request) {
+	static public EventBus send(String address, DeviceMessage request) {
 		return VertxUtil.getEventBus().send(address, encode(request));
 	}
 	
 	static public EventBus sendToDevice(final DeviceRequest request, final Handler<Message<String>> replyHandler) {
+		String jsonString = null;
 		DeviceMessage.AddrInfo info = request.createOrGetAddrInfo();
-		request.setAddrInfo(null);
-		String s = JsonUtil.toJsonString(request);
-		request.setAddrInfo(info);
-		if(request.createOrGetAddrInfo().getSocketId() == null) {
+		try {
+			request.setAddrInfo(null);
+			jsonString = JsonUtil.toJsonString(request);
+		}
+		finally {
+			request.setAddrInfo(info);
+		}
+		
+		if(request.getAddrInfo().getSocketId() == null) {
 			info.setSocketId(getDeviceNodeToSocketMap().get(info.getNodeId()));
 		}
 		if(replyHandler != null) {
@@ -48,7 +59,7 @@ public class DeviceMessageUtil {
 				}
 			});
 		}
-		return VertxUtil.getEventBus().send(info.getSocketId(), s, replyHandler);
+		return VertxUtil.getEventBus().send(info.getSocketId(), jsonString, replyHandler);
 	}
 	
 	static public Map<String, String> getDeviceNodeToSocketMap() {

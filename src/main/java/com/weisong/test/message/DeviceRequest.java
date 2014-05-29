@@ -8,5 +8,5 @@ import lombok.ToString;
 
 @Getter @Setter @ToString(callSuper = true)
 abstract public class DeviceRequest extends DeviceMessage {
-	private String requestId = UUID.randomUUID().toString();
+    private String requestId = UUID.randomUUID().toString();
 }

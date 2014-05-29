@@ -19,7 +19,7 @@ public class DeviceMessageHandlerVerticle extends Verticle {
 	
 	private Handler<Message<String>> fromDeviceHandler = new Handler<Message<String>>() {
 		@Override public void handle(Message<String> message) {
-			DeviceMessage dmsg = DeviceMessageUtil.decode(message.body());
+			DeviceMessage dmsg = DeviceMessageUtil.decode(message);
 			if(dmsg instanceof DeviceResponse) {
 				DeviceResponse resp = (DeviceResponse) dmsg;
 				DeviceMessageUtil.send(resp.getRequestId(), resp);
@@ -37,7 +37,7 @@ public class DeviceMessageHandlerVerticle extends Verticle {
 				request.createOrGetAddrInfo().setNodeId(nodeId);
 				DeviceMessageUtil.sendToDevice(request, new Handler<Message<String>>() {
 					@Override public void handle(Message<String> message) {
-						DeviceResponse response = (DeviceResponse) DeviceMessageUtil.decode(message.body());
+						DeviceResponse response = (DeviceResponse) DeviceMessageUtil.decode(message);
 						container.logger().info(String.format("Response: %s", response));
 					}
 				});

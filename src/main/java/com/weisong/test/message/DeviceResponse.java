@@ -6,5 +6,5 @@ import lombok.ToString;
 
 @Getter @Setter @ToString(callSuper = true)
 abstract public class DeviceResponse extends DeviceMessage {
-	private String requestId;
+    private String requestId;
 }

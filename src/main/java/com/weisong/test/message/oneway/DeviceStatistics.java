@@ -10,6 +10,6 @@ import lombok.ToString;
 
 @Getter @Setter @ToString(callSuper = true)
 public class DeviceStatistics extends DeviceNotification {
-	private Map<String, Integer> successful;
-	private Map<String, Integer> failed;
+    private Map<String, Integer> successful;
+    private Map<String, Integer> failed;
 }

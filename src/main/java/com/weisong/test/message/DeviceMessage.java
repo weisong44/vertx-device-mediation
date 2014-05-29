@@ -17,31 +17,30 @@ import com.weisong.test.message.twoway.HealthResponse;
 @Getter @Setter @ToString
 @JsonInclude(Include.NON_NULL)
 @JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    include = JsonTypeInfo.As.PROPERTY,
-    property = "type"
-)
-@JsonSubTypes({
-      @JsonSubTypes.Type(value=ChallengeRequest.class, name="challenge-request")
-    , @JsonSubTypes.Type(value=ChallengeResponse.class, name="challenge-response")
-    , @JsonSubTypes.Type(value=HealthRequest.class, name="health-request")
-    , @JsonSubTypes.Type(value=HealthResponse.class, name="health-response")
-    , @JsonSubTypes.Type(value=DeviceStatistics.class, name="device-statistics")
+    use = JsonTypeInfo.Id.NAME, 
+    include = JsonTypeInfo.As.PROPERTY, 
+    property = "type")
+@JsonSubTypes({ 
+    @JsonSubTypes.Type(value = ChallengeRequest.class, name = "challenge-request")
+  , @JsonSubTypes.Type(value = ChallengeResponse.class, name = "challenge-response")
+  , @JsonSubTypes.Type(value = HealthRequest.class, name = "health-request")
+  , @JsonSubTypes.Type(value = HealthResponse.class, name = "health-response")
+  , @JsonSubTypes.Type(value = DeviceStatistics.class, name = "device-statistics") 
 })
 abstract public class DeviceMessage {
-	
-	@Getter @Setter @ToString
-	static public class AddrInfo {
-		private String nodeId;
-		private String socketId;
-	}
-	
-	private AddrInfo addrInfo;
-	
-	public AddrInfo createOrGetAddrInfo() {
-		if(addrInfo == null) {
-			addrInfo = new AddrInfo();
-		}
-		return addrInfo;
-	}
+
+    @Getter @Setter @ToString
+    static public class AddrInfo {
+        private String nodeId;
+        private String socketId;
+    }
+
+    private AddrInfo addrInfo;
+
+    public AddrInfo createOrGetAddrInfo() {
+        if (addrInfo == null) {
+            addrInfo = new AddrInfo();
+        }
+        return addrInfo;
+    }
 }

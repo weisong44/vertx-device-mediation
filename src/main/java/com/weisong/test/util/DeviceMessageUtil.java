@@ -3,6 +3,7 @@ package com.weisong.test.util;
 import java.util.Map;
 
 import org.vertx.java.core.Handler;
+import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.eventbus.EventBus;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.http.WebSocket;
@@ -11,14 +12,22 @@ import com.weisong.test.message.DeviceMessage;
 import com.weisong.test.message.DeviceRequest;
 
 public class DeviceMessageUtil {
-	static public String encode(DeviceMessage message) {
-		return JsonUtil.toJsonString(message);
+	static public String encode(DeviceMessage dmsg) {
+		return JsonUtil.toJsonString(dmsg);
 	}
 	
-	static public DeviceMessage decode(String s) {
-		return JsonUtil.toObject(s, DeviceMessage.class);
-	}
-	
+    static public DeviceMessage decode(String s) {
+        return JsonUtil.toObject(s, DeviceMessage.class);
+    }
+    
+    static public DeviceMessage decode(Buffer data) {
+        return decode(data.toString());
+    }
+    
+    static public DeviceMessage decode(Message<String> message) {
+        return decode(message.body());
+    }
+    
 	static public WebSocket send(final WebSocket ws, final DeviceMessage message) {
 		// Strip off address info when sending to device
 		DeviceMessage.AddrInfo info = message.getAddrInfo();

@@ -8,5 +8,5 @@ import lombok.ToString;
 
 @Getter @Setter @ToString(callSuper = true)
 public class ChallengeRequest extends DeviceRequest {
-	private String challengeString;
+    private String challengeString;
 }

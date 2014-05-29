@@ -78,23 +78,23 @@ public class WebsocketServerVerticle extends Verticle {
 		final private ServerWebSocket ws; 
 		final private Context ctx; 
 		@Override public void handle(final Buffer data) {
-			if(shouldReject(data.toString())) {
+			if(shouldReject(data)) {
 				ws.reject();
 			}
 			else {
-				DeviceMessage dmsg = DeviceMessageUtil.decode(data.toString());
+				DeviceMessage dmsg = DeviceMessageUtil.decode(data);
 				dmsg.createOrGetAddrInfo().setNodeId(ctx.nodeId);
 				dmsg.createOrGetAddrInfo().setSocketId(ctx.socketId);
 				DeviceMessageUtil.send(Addresses.fromDeviceTopic, dmsg);
 			}
 		}
 		
-		private boolean shouldReject(String message) {
+		private boolean shouldReject(Buffer data) {
 			if(ctx.authStatus == DeviceAuthStatus.Failed) {
 				return true;
 			}
 			else if(ctx.authStatus == DeviceAuthStatus.NotAuthenticated) {
-				DeviceMessage msg = DeviceMessageUtil.decode(message);
+				DeviceMessage msg = DeviceMessageUtil.decode(data);
 				return msg instanceof ChallengeResponse == false;
 			}
 			return false;

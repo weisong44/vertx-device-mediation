@@ -1,7 +1,0 @@
-{
-  "main":"com.weisong.test.verticle.server.EntryVerticle",
-  "description":"Device mediation server using vert.x",
-  "licenses": ["The Apache Software License Version 2.0"],
-  "author": "Wei Song",
-  "auto-redeploy": true
-}

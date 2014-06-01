@@ -13,6 +13,8 @@ import com.weisong.test.message.twoway.ChallengeRequest;
 import com.weisong.test.message.twoway.ChallengeResponse;
 import com.weisong.test.message.twoway.HealthRequest;
 import com.weisong.test.message.twoway.HealthResponse;
+import com.weisong.test.message.twoway.ChallengeCompleteRequest;
+import com.weisong.test.message.twoway.ChallengeCompleteResponse;
 
 @Getter @Setter @ToString
 @JsonInclude(Include.NON_NULL)
@@ -25,6 +27,8 @@ import com.weisong.test.message.twoway.HealthResponse;
   , @JsonSubTypes.Type(value = ChallengeResponse.class, name = "challenge-response")
   , @JsonSubTypes.Type(value = HealthRequest.class, name = "health-request")
   , @JsonSubTypes.Type(value = HealthResponse.class, name = "health-response")
+  , @JsonSubTypes.Type(value = ChallengeCompleteRequest.class, name = "challenge-complete-request")
+  , @JsonSubTypes.Type(value = ChallengeCompleteResponse.class, name = "challenge-complete-response")
   , @JsonSubTypes.Type(value = DeviceStatistics.class, name = "device-statistics") 
 })
 abstract public class DeviceMessage {

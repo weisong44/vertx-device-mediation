@@ -11,6 +11,13 @@ public class EntryVerticle extends Verticle {
 		VertxUtil.init(vertx);
 		
 		container.deployVerticle(WebsocketServerVerticle.class.getName());
-		container.deployWorkerVerticle(DeviceMessageHandlerVerticle.class.getName());
+
+		final Class<?>[] workerVerticles = new Class<?>[] {
+	        DeviceMessageHandlerVerticle.class
+	      , PollingVerticle.class
+		};
+		for(final Class<?> c : workerVerticles) {
+	        container.deployWorkerVerticle(c.getName());
+		}
 	}
 }

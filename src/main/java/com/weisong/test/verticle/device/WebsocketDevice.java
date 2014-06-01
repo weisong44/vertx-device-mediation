@@ -2,8 +2,11 @@ package com.weisong.test.verticle.device;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.VertxFactory;
@@ -12,6 +15,8 @@ import org.vertx.java.core.http.WebSocket;
 
 import com.weisong.test.message.DeviceRequest;
 import com.weisong.test.message.oneway.DeviceStatistics;
+import com.weisong.test.message.twoway.ChallengeCompleteRequest;
+import com.weisong.test.message.twoway.ChallengeCompleteResponse;
 import com.weisong.test.message.twoway.ChallengeRequest;
 import com.weisong.test.message.twoway.ChallengeResponse;
 import com.weisong.test.message.twoway.HealthRequest;
@@ -22,6 +27,26 @@ import com.weisong.test.util.VertxUtil;
 
 public class WebsocketDevice {
 
+    static private AtomicLong requestCount = new AtomicLong();
+    static private AtomicLong notifCount = new AtomicLong();
+    
+    static private class Printer extends Thread {
+        public void run() {
+            while(true) {
+                try {
+                    Thread.sleep(1000L);
+                    System.out.println(String.format("Requests: % 4d, Notification: % 4d", 
+                            requestCount.longValue(), notifCount.longValue()));
+                    requestCount.set(0L);
+                    notifCount.set(0L);
+                }
+                catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    
     static private class Worker extends Thread {
 
         final private String host;
@@ -32,6 +57,8 @@ public class WebsocketDevice {
 
         final private String nodeId = GenericUtil.getRandomMacAddress();
         final private String uri = "/device/" + nodeId;
+        
+        @Getter @Setter private Boolean authenticated;
 
         private Worker(String host, int port) {
             this.host = host;
@@ -41,6 +68,7 @@ public class WebsocketDevice {
 
         public void run() {
             while (true) {
+                setAuthenticated(false);
                 VertxUtil.get().createHttpClient()
                     .setHost(host).setPort(port)
                     .exceptionHandler(new ExceptionHandler(this))
@@ -106,27 +134,38 @@ public class WebsocketDevice {
         @Override
         public void handle(Buffer data) {
             DeviceRequest request = (DeviceRequest) DeviceMessageUtil.decode(data);
-            System.out.println("Received: " + request);
+            requestCount.incrementAndGet();
+            //System.out.println("Received: " + request);
             incStats(worker.successfulResponses, request);
             if (request instanceof ChallengeRequest) {
-                handleChallengeRequest((ChallengeRequest) request);
+                handleRequest((ChallengeRequest) request);
+            }
+            else if (request instanceof ChallengeCompleteRequest) {
+                handleRequest((ChallengeCompleteRequest) request);
             }
             else if (request instanceof HealthRequest) {
-                handleHealthRequest((HealthRequest) request);
+                handleRequest((HealthRequest) request);
             }
             else {
                 System.err.println("Unknown message: " + data.toString());
             }
         }
 
-        private void handleChallengeRequest(ChallengeRequest req) {
+        private void handleRequest(ChallengeRequest req) {
             ChallengeResponse resp = new ChallengeResponse();
             resp.setRequestId(req.getRequestId());
             resp.setHashedChallengeString(req.getChallengeString());
             DeviceMessageUtil.send(ws, resp);
         }
 
-        private void handleHealthRequest(HealthRequest req) {
+        private void handleRequest(ChallengeCompleteRequest req) {
+            ChallengeCompleteResponse resp = new ChallengeCompleteResponse();
+            resp.setRequestId(req.getRequestId());
+            worker.setAuthenticated(true);
+            DeviceMessageUtil.send(ws, resp);
+        }
+
+        private void handleRequest(HealthRequest req) {
             HealthResponse resp = new HealthResponse();
             resp.setRequestId(req.getRequestId());
             DeviceMessageUtil.send(ws, resp);
@@ -149,10 +188,14 @@ public class WebsocketDevice {
 
         @Override
         public void handle(Long event) {
+            if(worker.getAuthenticated() == false) {
+                return;
+            }
             DeviceStatistics stats = new DeviceStatistics();
             stats.setSuccessful(worker.successfulResponses);
             stats.setFailed(worker.failedResponses);
             DeviceMessageUtil.send(ws, stats);
+            notifCount.incrementAndGet();
         }
     }
 
@@ -161,6 +204,7 @@ public class WebsocketDevice {
         WebsocketDeviceOptions opts = new WebsocketDeviceOptions(args);
         
         VertxUtil.init(VertxFactory.newVertx());
+        new Printer().start();
         for (int i = 0; i < opts.getConnections(); i++) {
             new Worker(opts.getHost(), opts.getPort()).start();
         }
